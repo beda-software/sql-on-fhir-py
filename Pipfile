@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+fhirpy = "*"
+ipykernel = "*"
+jupyter = "*"
+psycopg = "*"
+pyarrow = "*"
+pgpq = "*"
+pyspark = "*"
+duckdb = "==0.7.1"
+duckdb-engine = "*"
+ndjson = "*"
+psycopg2 = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"
