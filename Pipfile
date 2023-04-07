@@ -15,8 +15,18 @@ duckdb = "==0.7.1"
 duckdb-engine = "*"
 ndjson = "*"
 psycopg2 = "*"
+pytest = "*"
+funcy = "*"
+bnfparsing = {git = "https://github.com/somemarsupials/bnfparsing.git"}
+bnf = "*"
+frontend-for-free = "*"
+ipdb = "*"
 
 [dev-packages]
+black = "*"
+pylint = "*"
+jedi = "*"
+anaconda = "*"
 
 [requires]
 python_version = "3.11"
