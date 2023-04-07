@@ -1,22 +1,8 @@
-# import bnf
 import bnfparsing
 from funcy.strings import re_all
 
-BNF_definition = """
-expression: (column path-item+) | ( table path-item+) | path-item+
-column: '!' path-item
-table: identifier
-path-item: index | element
-element: '.' identifier
-index: '[' integer ']'
-identifier: [a-zA-Z0-9]+
-integer: [0-9]+
-"""
 
-# bnf.grammar(BNF_definition)
-
-
-class IfStmtParser(bnfparsing.ParserBase):
+class SQLonFHIRMacroParser(bnfparsing.ParserBase):
     @bnfparsing.rule
     def identifier(self, string):
         index = 0
@@ -92,24 +78,31 @@ def duckdb_age(path):
     return f"datediff('year', {duckdb_jsonpath(path)}::date, current_date )"
 
 
-DIALECTS = {"duckdb": {"json_path": duckdb_jsonpath, "age": duckdb_age}}
+def postgres_jsonpath(path):
+    return f"resource#>>'{{{','.join(str(p) for p in path)}}}'"
 
 
-def resolve_string_template(i, dialect):
-    exprs = re_all(r"(?P<macro>\(\{(?P<exp>\S*\s+\S+)\s*\}\))", i)
+def postgres_age(path):
+    return f"date_part('year', age(current_timestamp,({postgres_jsonpath(path)})::timestamp))"
+
+
+DIALECTS = {
+    "duckdb": {"json_path": duckdb_jsonpath, "age": duckdb_age},
+    "postgres": {"json_path": postgres_jsonpath, "age": postgres_age},
+}
+
+
+def convert(sql, dialect):
+    exprs = re_all(r"(?P<macro>\(\{(?P<exp>\S*\s+\S+)\s*\}\))", sql)
     vs = {}
     for exp in exprs:
-        parser = IfStmtParser()
+        parser = SQLonFHIRMacroParser()
         token = parser.parse(exp["exp"])
         fn, path = prepare_token(token)
         vs[exp["macro"]] = DIALECTS[dialect][fn](path)
 
-    res = i
+    res = sql
     for k, v in vs.items():
         res = res.replace(k, v)
 
     return res
-
-
-def convert(sql, dialect):
-    return resolve_string_template(sql, dialect)
